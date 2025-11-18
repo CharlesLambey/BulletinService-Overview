@@ -23,7 +23,6 @@ Le service peut apposer une signature électronique sur chaque bulletin PDF :
 ### 📤 2. Distribution automatique par email
 - Récupération des informations salariés depuis **Sage Paie & RH**
 - Association automatique entre bulletin et salarié
-- Génération d’un email personnalisé
 - Envoi via SMTP
 
 ### 🧠 3. Intégration Sage Paie & RH
