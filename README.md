@@ -100,11 +100,15 @@ La documentation détaillée se trouve dans le dossier `docs/` :
 - `docs/DEPLOY.md` → checklist de déploiement (secrets, SQL, variables d’environnement, service)  
 
 ---
+
 ## 👤 Auteur
+
 **Charles LAMBEY**  
 Consultant & Développeur Full Stack  
 _Odoo | Sage 100 & X3 | Intégration & Automatisation_
+
 ---
+
 ## 📜 Licence
 
 Projet interne — **Code source privé**.  
