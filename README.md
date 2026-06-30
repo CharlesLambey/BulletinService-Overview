@@ -1,159 +1,111 @@
-# 📨 BulletinService  
-### *Service Windows automatisé pour la signature électronique et l’envoi sécurisé des bulletins de paie*
+# 📨 BulletinService — Service Windows d’envoi automatisé des bulletins de paie
+
+**BulletinService** est un service Windows développé en **C# (.NET Framework)** permettant :
+
+- d’apposer automatiquement une signature électronique (image **locale**) sur les bulletins de paie au format PDF ;
+- d’extraire les informations des salariés depuis **Sage Paie & RH** ;
+- d’envoyer individuellement chaque bulletin au salarié correspondant ;
+- de journaliser toutes les opérations (logs) pour analyse et traçabilité.
+
+Ce service s’adresse aux entreprises qui souhaitent automatiser et sécuriser la distribution électronique des bulletins de paie. **BulletinService** se connecte directement au logiciel **Sage Paie & RH** afin de récupérer les informations relatives aux salariés.
+L’utilisation de **Sage Paie & RH** constitue donc un prérequis pour garantir le bon fonctionnement du service.
+
+Cependant, si vous utilisez un autre logiciel de paie, nous pouvons personnaliser BulletinService afin de l’adapter à votre solution actuelle.
 
 ---
 
-## 🎯 Présentation du projet
+## 🚀 Fonctionnalités principales
 
-**BulletinService** est un service Windows professionnel développé pour automatiser le processus de traitement, de signature électronique et d’envoi sécurisé des bulletins de paie aux salariés.
+### ✔️ Signature électronique des PDFs  
+- Signature **locale** (image stockée sur le disque, chemin configurable)  
+- Position et dimensions paramétrables (`posX`, `posY`, `largeur`, `hauteur`)  
+- Option de désactivation totale de la signature (`onsign`)  
+- Si la signature est activée mais le fichier introuvable : **log explicite** et bulletins non envoyés (pas de bulletin non signé)
 
-Il permet de réduire les tâches manuelles, de sécuriser les échanges et d’améliorer la traçabilité dans le processus de distribution des bulletins.
+### ✔️ Envoi automatique des bulletins par email  
+- Envoi **SMTP via OAuth2** (Microsoft 365 / Azure Entra ID, XOAUTH2)  
+- Connexion chiffrée (SSL/TLS)  
+- Contenu d’email personnalisable  
+- Association automatique PDF ↔ salarié via :  
+  **Matricule – Date de Paie**  
+- **Validation du format** de l’adresse avant envoi ; gestion des cas
+  *email absent* (`_NoEmail`) et *email invalide* (`_InvalidEmail`)
 
----
+### ✔️ Sécurité des secrets  
+- Aucun secret en clair dans `App.config`  
+- Secret Azure et identifiants SQL lus depuis des **variables d’environnement**
+  (`BULLETIN_OAUTH_CLIENT_SECRET`, `BULLETIN_SQL_USER`, `BULLETIN_SQL_PASSWORD`)
 
-## 🧩 Fonctionnalités principales
+### ✔️ Intégration Sage Paie & RH  
+- Lecture des informations salariés  
+- Correspondance PDF / fiche du salarié
 
-### 🔒 1. Signature électronique (optionnelle)
-Le service peut apposer une signature électronique sur chaque bulletin PDF :
-
-- **Signature désactivée**
-- **Signature locale** (image .png sur le disque)
-- **Signature en ligne via Google Drive** (compte de service Google)
-
-### 📤 2. Distribution automatique par email
-- Récupération des informations salariés depuis **Sage Paie & RH**
-- Association automatique entre bulletin et salarié
-- Envoi via SMTP
-
-### 🧠 3. Intégration Sage Paie & RH
-Extraction automatique de données :
-- Nom  
-- Matricule  
-- Genre  
-- Email  
-- Informations utiles pour l’envoi ciblé du bulletin
-
-### 📝 4. Gestion et suivi
-- Journaux d’exécution (logs)
-- Gestion des erreurs
-- Historique des opérations
+### ✔️ Exécution en tant que Service Windows  
+- Démarrage automatique  
+- Exécution en arrière-plan  
+- Logs détaillés
 
 ---
 
 ## 🧱 Architecture technique
 
-| Composant | Technologie / Outil |
-|----------|----------------------|
-| Application | C# – Windows Service (.NET Framework) |
-| Signature PDF | iTextSharp |
-| API Cloud | Google Drive API (v3 – Service Account) |
-| Emailing | SMTP |
-| Logs | Stockage local (LogFolder) |
+- **Langage** : C#  
+- **Framework** : .NET Framework 4.8  
+- **Service Windows**  
+- **Signature PDF** : iTextSharp (signature locale)  
+- **Email** : SMTP **OAuth2** (Microsoft 365) via MSAL (`Microsoft.Identity.Client`)  
+- **Base de données** : SQL Server (Sage Paie & RH)  
+- **Logging** interne dans `LogFolder/`, avec repli **Event Viewer** (source `BulletinService`)  
+
+Schéma détaillé disponible dans `docs/ARCHITECTURE.md`.
 
 ---
 
-## 📂 Structure du projet (présentation)
+## 📂 Structure du projet
 
     BulletinService/
+    │ README.md
+    │ App.config
+    │ BulletinService.csproj
+    │ Program.cs
+    │ Service1.cs            (orchestrateur du service)
+    │ PdfSigner.cs           (signature PDF locale)
+    │ OAuth2MailSender.cs    (envoi email SMTP OAuth2)
+    │ OAuth2TokenService.cs  (jeton OAuth2 via Azure / MSAL)
+    │ EnvConfig.cs           (lecture des secrets via variables d'environnement)
+    │ EmployeeInfo.cs
+    │ Log.cs                 (logs fichier + repli Event Viewer)
     │
-    │── Service1.cs              # Service Windows principal
-    │── GoogleDriveHelper.cs     # Gestion de la signature Google Drive
-    │── PdfSigner.cs             # Apposition de la signature PDF
-    │── Log.cs                   # Système de logs
-    │── App.config               # Paramètres du service
-    │── packages.config
-    │── Program.cs
+    │ ProjectInstaller.cs              (installe le service + source EventLog)
+    │ ProjectInstaller.Designer.cs
+    │
+    ├── Properties/
+    │ └── AssemblyInfo.cs
+    └── docs/
+      ├── INSTALL.md
+      ├── CONFIG.md
+      ├── DEPLOY.md
+      └── ARCHITECTURE.md
 
-
-> ⚠️ *Le code source complet n’est pas publié pour raisons de confidentialité.*
 
 ---
 
-## 🖥️ Prérequis système
+## ⚙️ Documentation
 
-| Élément | Exigence |
-|--------|----------|
-| Système | Windows 10 / Windows Server 2016+ |
-| Framework | .NET Framework 4.7.2+ |
-| Droits | Administrateur (installation du service) |
-| Connexion | Internet requise pour Drive & SMTP |
-| Espace requis | 500 Mo minimum |
+La documentation détaillée se trouve dans le dossier `docs/` :
 
----
-
-## ⚙️ Modes de signature
-
-| Mode | Description |
-|------|-------------|
-| **Désactivée** | Aucun traitement appliqué |
-| **Locale** | Image .png stockée localement |
-| **En ligne** | Récupération Google Drive via compte de service |
+- `docs/INSTALL.md` → installation/démarrage/arrêt du service  
+- `docs/CONFIG.md` → paramètres complets du fichier App.config  
+- `docs/ARCHITECTURE.md` → diagrammes + logique interne du service  
+- `docs/DEPLOY.md` → checklist de déploiement (secrets, SQL, variables d’environnement, service)  
 
 ---
-
-## ⚙️ Exemple de configuration (anonymisé)
-
-```xml
-<configuration>
-  <appSettings>
-    <!-- Activation de la signature -->
-    <add key="onsign" value="true"/>
-
-    <!-- Mode signature : en ligne / locale -->
-    <add key="onligne" value="false"/>
-
-    <!-- Chemin signature locale -->
-    <add key="cheminSigneOffLine" value="C:\Signatures\signature.png"/>
-
-    <!-- Paramètres SMTP (anonymisés) -->
-  </appSettings>
-</configuration>
-
-```
-
-## 🧑‍💻 Rôle dans le projet
-
-Développement complet du service Windows, incluant :
-
-- Architecture logicielle
-- Développement en C#
-- Intégration Sage Paie
-- Gestion signature PDF (iTextSharp)
-- Intégration Google Drive API
-- Système d’envoi email (SMTP)
-- Gestion des logs
-- Déploiement et configuration
-
-
-## 🔒 Code source non publié
-
-Ce repository présente uniquement :
-
-- l’architecture
-- les concepts
-- les fonctionnalités
-- la documentation d’ensemble
-> ⚠️ Le code source complet reste confidentiel conformément aux exigences de l’entreprise.
-
-## 🎉 Résultats
-
-- ✔️ Réduction importante des tâches manuelles
-- ✔️ Distribution rapide et sécurisée des bulletins
-- ✔️ Automatisation fiable et continue
-- ✔️ Amélioration de la confidentialité et traçabilité
-
----
-
-## 🔐 Sécurité
-- Aucune donnée sensible n’est publiée dans ce dépôt.
-- Le code source réel est confidentiel.
-- Le README sert uniquement à illustrer l’expérience sur le projet.
-
----
-
 ## 👤 Auteur
 **Charles LAMBEY**  
 Consultant & Développeur Full Stack  
 _Odoo | Sage 100 & X3 | Intégration & Automatisation_
-
 ---
+## 📜 Licence
+
+Projet interne — **Code source privé**.  
+Toute diffusion est strictement interdite sans autorisation du propriétaire.
